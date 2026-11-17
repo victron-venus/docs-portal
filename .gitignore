@@ -1,0 +1,8 @@
+# Generated at build time, never committed.
+docs/projects/
+.sources/
+site/
+.venv/
+__pycache__/
+*.py[cod]
+.cache/
