@@ -10,11 +10,11 @@ project repository. This portal reads it at build time.
 
 ## Why it exists
 
-The organization publishes 3,800 markdown files across 97 `docs/` trees, but
-only eight of those trees had an index, so about 40% of the pages were reachable
-from nowhere. Two copies of the same catalog competed in search results, and
-239 mermaid diagrams rendered nowhere. This portal adds one navigable layer
-without creating a second copy of any document.
+Documentation is spread across project repositories, and finding a page should
+not require knowing which repository owns it. The portal adds a searchable,
+navigable view over the maintained public catalog while keeping the owning
+repositories authoritative. Build logs report the projects and pages actually
+aggregated; Mermaid rendering depends on the source diagram and browser.
 
 ## How it works
 

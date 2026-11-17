@@ -34,8 +34,7 @@ theme:
         name: Switch to light mode
 
 markdown_extensions:
-  # Diagrams: 239 mermaid blocks exist across the repositories and none of them
-  # render anywhere today. Render them here instead of rewriting them.
+  # Render source Mermaid blocks without maintaining diagram copies here.
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
