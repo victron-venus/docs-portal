@@ -3,43 +3,76 @@ name: portal
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron: '17 4 * * *'
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   build:
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
           cache: pip
+      - name: Test source isolation and links
+        run: python -m unittest discover -s tests -v
       - run: pip install --require-hashes -r requirements.lock
       - name: Aggregate project documentation
         run: python scripts/sync_sources.py --catalog catalog.json --clone
       - name: Build with link and page validation
         run: mkdocs build --strict
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: site
 
   deploy:
-    needs: build
+    timeout-minutes: 10
+    needs: [build, ci-gate]
+    if: github.event_name != 'pull_request'
+    permissions:
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+
+  codeql:
+    name: CodeQL
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: actions,python
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+
+  ci-gate:
+    name: CI gate
+    if: always()
+    needs: [build, codeql]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require build and security checks
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          CODEQL_RESULT: ${{ needs.codeql.result }}
+        run: test "$BUILD_RESULT" = success && test "$CODEQL_RESULT" = success

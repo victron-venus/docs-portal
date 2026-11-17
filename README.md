@@ -25,27 +25,39 @@ mkdocs.yml              theme, mermaid rendering, search
 docs/                   hand-written portal pages only (index, reference, contributing)
 ```
 
-`sync_sources.py` rewrites every relative link to the repository's blob view, so
-a link in an aggregated page always resolves. It skips shared boilerplate
-(`release-workflow.md`, `quality.md`, `openssf-evidence.md`, `VERSIONING.md`,
-`runner-preflight.md`, `release-read-safety.md`, fuzzing notes): those exist in
-dozens of diverging copies and the portal links the canonical source once
-instead of rendering every copy.
+`sync_sources.py` reads only committed regular Markdown blobs from each
+catalogued public repository. Inline and reference links resolve relative to their source
+page at its exact commit; images use raw GitHub content; HTML href/src references are resolved too. Git symlinks,
+untracked files and modified working files are never copied. Repository-specific
+quality and release pages remain included: matching filenames do not establish
+that two projects have interchangeable rules.
+
+Builds never fall back to sibling working checkouts. CI clones anonymously without
+credential helpers; missing sources fail the build. Generated output has an
+ownership manifest, so repeat builds remove obsolete pages while refusing to
+overwrite manually changed output. Source repositories remain untouched.
 
 ## Local build
 
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install --require-hashes -r requirements.lock
-.venv/bin/python scripts/sync_sources.py --catalog ../victron-venus.github.io/assets/catalog.json
+.venv/bin/python scripts/sync_sources.py --catalog catalog.json --clone
 .venv/bin/mkdocs build --strict
 .venv/bin/mkdocs serve
 ```
 
-Without `--clone` the script reuses the sibling working checkouts in the
-workspace; with `--clone` it shallow-clones every catalogued repository into
-`.sources/`. The build runs in strict mode: a broken link, an orphan page or a
-malformed mermaid block fails CI rather than shipping.
+Without `--clone`, every catalogued source must already exist in `.sources/`
+with a matching HTTPS GitHub origin. Existing sources use their committed HEAD;
+remove an owned `.sources/<project>` clone to fetch the latest default branch.
+The portal is published at https://victron-venus.github.io/docs-portal/ after
+Terraform enables workflow-based Pages. Pull requests build and test the site
+without deployment permission. Strict MkDocs checks validate the generated site,
+but do not prove external URL availability or Mermaid syntax in a real browser.
+Markdown snippets cannot include runner-local files during rendering. For an
+isolated rehearsal without replacing existing generated output, pass
+`--output-dir /path/to/build-docs/projects` and point a temporary MkDocs
+configuration at that build-docs directory.
 
 ## What it deliberately does not do
 
@@ -55,8 +67,8 @@ malformed mermaid block fails CI rather than shipping.
 - It does not publish a GitHub wiki. Wiki content is generated from `docs/` in
   the owning repository, never hand-edited here.
 - It does not machine-translate. A page without a translation falls back to
-  English with a visible notice rather than silently presenting a machine
-  translation of identifiers such as `com.victronenergy.battery`.
+  English only when the source itself provides that fallback; the portal does
+  not implement a translation selector.
 
 ## Updating the project list
 
