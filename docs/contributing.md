@@ -29,12 +29,13 @@
 
 ```sh
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install --require-hashes -r requirements.lock
 .venv/bin/python scripts/sync_sources.py --catalog ../victron-venus.github.io/assets/catalog.json --clone
 .venv/bin/mkdocs build --strict
 .venv/bin/mkdocs serve
 ```
 
 `--clone` shallow-clones each catalogued repository into `.sources/`, which is
-ignored by git. The build fails on a broken relative link, a missing page or a
-malformed mermaid block, so a mistake is caught before publication.
+ignored by git. Only committed regular Markdown is included; local working changes and Git
+symlinks are excluded. Strict MkDocs checks validate generated pages, not
+external URL availability or Mermaid syntax at runtime.

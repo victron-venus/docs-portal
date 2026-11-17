@@ -1,5 +1,5 @@
 site_name: Victron Venus documentation
-site_url: https://victron-venus.github.io/docs/
+site_url: https://victron-venus.github.io/docs-portal/
 site_description: >-
   Installation, integration and reference documentation for the Victron Venus OS
   projects maintained by the victron-venus organization.
@@ -51,7 +51,6 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.highlight
   - pymdownx.inlinehilite
-  - pymdownx.snippets
 
 plugins:
   - search:

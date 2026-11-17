@@ -33,11 +33,11 @@ organization.
 Each project page is generated from that project's `README.md` and `docs/`
 directory. Nothing is copied into this repository, so there is no second copy to
 drift: the project repository stays the source of truth, and this portal is a
-reader over it. Relative links resolve to the repository's own blob view.
+reader over it. Inline links resolve from the original page to its committed GitHub blob;
+inline images use raw content.
 
-Documentation that is shared boilerplate — release workflow, quality evidence,
-OpenSSF evidence, preflight and versioning notes — is not repeated per project.
-Those live once in
+Repository-specific quality, release and security pages are retained. Shared
+reference contracts are linked from
 [venus-os-ci-toolkit](https://github.com/victron-venus/venus-os-ci-toolkit).
 
 The hand-written guides stay on [the main site](https://victron-venus.github.io/),
